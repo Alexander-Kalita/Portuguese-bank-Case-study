@@ -13,6 +13,38 @@ It is publicly available in the UCI Machine Learning Repository [https://archive
 
 All the used Python packages were loaded.
 
+# Load packages in Python
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import xgboost as xgb
+from scipy.stats import yeojohnson
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, roc_curve
+
+The dataset was loaded for analysis in JupyterLab.
+
+# Load dataset
+bank_data = pd.read_csv('C:/Users/Alexander_Kalita/Desktop/2_Portuguese_bank/bank-full.csv', sep=",")
+bank_data.head()
+
+# Data exploration
+
+The internal structure of the data is presented. The dataset provides the bank customers’ information which includes 45,211 rows and 17 columns.
+
+# View data structure
+print(bank_data.info())
+
+It can be seen above that object (character) type variables are misleading and labeled as strings with text values, but these variables are categorical type. 
+This issue is fixed with the following code:
+
+
+
+
+
+
 
 
 
