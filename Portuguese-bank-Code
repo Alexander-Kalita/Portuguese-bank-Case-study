@@ -190,7 +190,7 @@ plt.show()
 
 # Modeling and Analysis
 
-This section covers model selection, model training and interpretation, and model evaluation.
+This section covers model selection, model training and interpretation, model evaluation, and model comparison.
 
 ## Model selection
 
@@ -349,6 +349,33 @@ plt.ylabel('True Positive Rate')
 plt.title('Figure 8: ROC AUC Curve', fontsize=14)
 plt.legend(loc="lower right")
 plt.show()
+
+## Model comparison
+
+In this subsection, the performance of different machine learning models was compared based on multiple metrics 
+to justify the selection of the XGBoost model as the final classification model.
+
+### Table 2: Classification model comparison
+| Models | Accuracy | Precision | Sensitivity | Specificity | ROC (AUC) | TPR at FPR <10% |
+|--------|----------|-----------|-------------|-------------|-----------|-----------------|
+| Logistic regression | 87,5% | 47,9% | 71,5% | 89,6% | 81% | 71% |
+| Feedforward NN | 89% | 53,6% | 48,9% | 94,3% | 72% | 49% (6%) |
+| Decision trees | 87,2% | 45,8% | 47,5% | 92,5% | 70% | 47% (8%) |
+| Random forest | 89,4% | 53,7% | 71,7% | 91,7% | 82% | 77% |
+| XG Boost | 88,4% | 50,6% | 81,2% | 89,3% | 85% | 80% |
+
+# Conclusions and Recommendations
+
+The current research provides some important conclusions as well as practical recommendations for the Portuguese bank.
+
+# List of References
+
+1. Moro S., Cortez P., & Rita P. (2014). A data-driven approach to predict the success of bank telemarketing. Decision Support Systems, 62: 22-31.
+2. https://archive.ics.uci.edu/ml/datasets/bank+marketing# [accessed date: 11.05.2023].
+
+
+
+
 
 
 
