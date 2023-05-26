@@ -16,6 +16,8 @@ It is publicly available in the UCI Machine Learning Repository [https://archive
 
 # Data Preparation
 
+The data preparation section was divided into data exploration and data cleaning.
+
 All the used Python packages were loaded.
 
 # Load packages in Python
@@ -35,7 +37,7 @@ The dataset was loaded for analysis in JupyterLab.
 bank_data = pd.read_csv('C:/Users/Alexander_Kalita/Desktop/2_Portuguese_bank/bank-full.csv', sep=",")
 bank_data.head()
 
-# Data exploration
+## Data exploration
 
 The internal structure of the data is presented. The dataset provides the bank customers’ information which includes 45,211 rows and 17 columns.
 
@@ -88,6 +90,80 @@ def create_distplots(data, num_cols):
     for ax in empty_ax:
         ax.remove()     
 create_distplots(bank_data, num_cols)
+
+The correlation matrix for numerical variables was designed.
+
+# Create correlation matrix
+corr = bank_data.corr()
+plt.figure(figsize=(15, 7))
+plt.title('Figure 3: Correlation matrix', y=1, size=16)
+sns.heatmap(corr, cmap='coolwarm', annot=True)
+plt.show()
+
+## Data cleaning
+
+The duplicates were checked. It seems that there is lack of duplicates in the data.
+
+# Check duplicated data
+duplicates = bank_data[bank_data.duplicated()]
+print("Number of duplicate rows:", duplicates.shape[0])
+bank_data = bank_data.drop_duplicates()
+
+The data was checked for missing values. There is no “null” value of missing data.
+
+# Check for missing values
+print(bank_data.isnull().sum())
+
+The numeric variables were checked for outliers using interquartile range (IQR).
+
+# Check for outliers in numeric variables
+numeric_vars = bank_data.select_dtypes(include=['int64']).columns.tolist()
+for col in numeric_vars:
+    Q1 = bank_data[col].quantile(0.25)
+    Q3 = bank_data [col].quantile(0.75)
+    IQR = Q3 - Q1
+    lower = Q1 - (1.5 * IQR)
+    upper = Q3 + (1.5 * IQR)
+    num_outliers = bank_data [(bank_data [col] < lower) | (bank_data [col] > upper)][col].count()
+    print('Column:', col)
+    print('IQR:', IQR)
+    print('Lower whisker:', lower)
+    print('Upper whisker:', upper)
+    print('Total number of outliers:', num_outliers)
+    print('\n')
+
+
+# Analyzing telemarketing campaign: main findings
+
+This section presents the key findings of the study on the telemarketing campaign of a Portuguese bank. 
+It begins with descriptive statistics of the key variables. 
+Then it proceeds to a classification analysis aimed at predicting the likelihood of potential customers subscribing to the bank's deposit offer.
+
+## Descriptive statistics
+
+The barplot was created to show the importance of months for term deposit subscription.
+
+# Barplot: Number of term subscribers by each month
+subscribers_by_month = bank_data.groupby(['month', 'y']).size().unstack().fillna(0)
+subscribers_by_month['Total'] = subscribers_by_month.sum(axis=1)
+subscribers_by_month['Percent_Subscribers'] = subscribers_by_month['yes']/subscribers_by_month['Total']*100
+subscribers_by_month = subscribers_by_month.sort_values(by='Percent_Subscribers', ascending=True)
+fig, ax = plt.subplots(figsize=(10, 6))
+colors = ['#1f77b4', '#ff7f0e', '#ff5733']
+ax.barh(subscribers_by_month.index, subscribers_by_month['no'], height=0.5, color=colors[0], label='Non-Subscribers')
+ax.barh(subscribers_by_month.index, subscribers_by_month['yes'], height=0.5, left=subscribers_by_month['no'], color=colors[1], label='Subscribers')
+for i, v in enumerate(subscribers_by_month['Percent_Subscribers']):
+    ax.text(subscribers_by_month.iloc[i,1] + subscribers_by_month.iloc[i,0] + 1, i - 0.05, str(round(v,1)) + '%', color=colors[2], fontsize=12)
+ax.legend(loc='upper right')
+ax.set_title('Figure 4: Number of term subscribers by each month', fontsize=14)
+ax.set_xlabel('Count', fontsize=12)
+ax.set_ylabel('Month', fontsize=12)
+ax.tick_params(axis='both', labelsize=12, length=0)
+for spine in ax.spines.values():
+    spine.set_visible(False)
+plt.show()
+
+The line plot was designed to display the importance of call duration for term deposit subscription.
 
 
 
