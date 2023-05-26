@@ -4,6 +4,11 @@ author: "Alexander Kalita"
 output: .ipynb
 ---
 
+# Introduction
+
+The goal of the study is to explore a range of socio-demographic features and past marketing experiences, 
+and provide insights with diverse classification models what factors are most likely to lead to successful customer subscription.
+
 # Data Description
 
 In this section, the data of the Portuguese retail bank collected between May 2008 and November 2010 was described.
