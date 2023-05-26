@@ -6,8 +6,8 @@ output: .ipynb
 
 # Introduction
 
-The goal of the study is to explore a range of socio-demographic features and past marketing experiences, 
-and provide insights with diverse classification models what factors are most likely to lead to successful customer subscription.
+The objective of this study is to investigate the relationship between various socio-demographic features, past marketing experiences,
+and the likelihood of successful customer deposit subscription in a Portuguese bank.
 
 # Data Description
 
