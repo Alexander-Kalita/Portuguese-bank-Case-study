@@ -45,6 +45,57 @@ print(bank_data.info())
 It can be seen above that object (character) type variables are misleading and labeled as strings with text values, but these variables are categorical type. 
 This issue is fixed with the following code:
 
+# Change object into category type variables
+for col in bank_data.select_dtypes(include='object').columns:
+    bank_data[col] = bank_data [col].astype('category')
+print(bank_data.dtypes)
+
+Categorical and binary variables, including the target variable “y” were analyzed.
+
+# Visualize categorical and binary variables
+cat_cols = bank_data.select_dtypes(include=['category']).columns.tolist()
+def create_countplots(data, cat_cols):
+    fig, axes = plt.subplots(nrows=4, ncols=3, figsize=(19, 19))
+    plt.subplots_adjust(wspace=0.3, hspace=0.5, top=0.95)
+    fig.suptitle("Figure 1: Distribution of Categorical and Binary Variables", fontsize=20)
+    for ax, feat in zip(axes.flat, cat_cols):
+        sns.countplot(x=data[feat], ax=ax, order=data[feat].value_counts().index)
+        ax.set_title(feat)
+        ax.set_xlabel("")
+        ax.tick_params(axis='x', rotation=45)
+        for p in ax.patches:
+            height = p.get_height()
+            ax.text(p.get_x()+p.get_width()/2.,height+3,
+            '{:.1f}%'.format(height/len(data)*100), ha="center")
+    empty_ax = axes.flat[len(cat_cols):]
+    for ax in empty_ax:
+        ax.remove()
+create_countplots(bank_data, cat_cols)
+
+Numeric variables were separately analyzed.
+
+# Visualize numeric variables
+num_cols = bank_data.select_dtypes(include=['int64']).columns.tolist()
+def create_distplots(data, num_cols):
+    fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(15, 15))
+    plt.subplots_adjust(wspace=0.3, hspace=0.3, top=0.94)
+    fig.suptitle("Figure 2: Distribution of Numeric Variables", fontsize=16)
+    for ax, feat in zip(axes.flat, num_cols):
+        sns.histplot(data=data, x=feat, kde=True, ax=ax)
+        ax.set_title(feat)
+        ax.set_xlabel("")
+    empty_ax = axes.flat[len(num_cols):]
+    for ax in empty_ax:
+        ax.remove()     
+create_distplots(bank_data, num_cols)
+
+
+
+
+
+
+
+
 
 
 
