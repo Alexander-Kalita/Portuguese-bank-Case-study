@@ -226,14 +226,81 @@ X = pd.concat([bank_data, binary_data], axis=1)
 y = bank_data['y']
 display(X.head())
 
+Both numerical and categorical (binary) variables were combined into a single dataset.
 
+# Combine the transformed numerical and categorical variables into a single dataset
+final_data = pd.concat([transformed_data, binary_data, bank_data['y']], axis=1)
+X = final_data.drop(columns=['y'])
+y = final_data['y']
+final_data.info()
 
+Then, the main dataset was split into training and testing data with a ratio of 70%/30% which is commonly used for moderate-sized datasets.
 
+# Split the dataset into training and testing data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+print('Training data shape:', X_train.shape, y_train.shape)
+print('Testing data shape:', X_test.shape, y_test.shape)
 
+The DMatrix was created to store the data in a format compatible with the XGBoost library.
 
+# Create a DMatrix
+dtrain = xgb.DMatrix(X_train, label=y_train)
+dtest = xgb.DMatrix(X_test, label=y_test)
 
+The following XGBoost hyperparameters were set. Note that by trial and error, only those hyperparameters were selected that had an impact on the model.
 
+# Set XGBoost hyperparameters
+params = {
+    'objective': 'binary:logistic',
+    'learning_rate': 0.1,
+    'n_estimators': 100,
+    'max_depth': 5,
+    'colsample_bytree': 0.8
+}
 
+The XGBoost model was built using 5-fold cross-validation. 
+The cross-validation accuracy of 91% with a standard deviation of 1% indicates that the data was divided into 5 samples, 
+and each sample demonstrated a cross-validation accuracy of approximately 91% (±1%).
+
+# Build the XGBoost model with 5-fold cross-validation
+xgb_cv = XGBClassifier(**params)
+xgb_cv.fit(X_train, y_train)
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(xgb_cv, X, y, cv=kf)
+print("Cross-validation accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+The relative feature importance plot was generated to highlight the top 5 most significant variables in the dataset. 
+
+# Plot relative feature importance
+importances = xgb_cv.feature_importances_
+features = X.columns
+total_importance = np.sum(importances)
+importances = importances / total_importance
+sorted_idx = np.argsort(importances)[-5:]
+pos = np.arange(sorted_idx.shape[0]) + 0.5
+plt.figure(figsize=(10, 6))
+plt.barh(pos, importances[sorted_idx], align='center', color='#00477e')
+plt.yticks(pos, features[sorted_idx])
+plt.title('Figure 6: Top 5 Features', fontsize=14)
+plt.xlabel('(%)', fontsize=12)
+plt.ylabel('Features', fontsize=12)
+plt.xticks(fontsize=7)
+plt.yticks(fontsize=7)
+for i, v in enumerate(importances[sorted_idx]):
+    plt.text(v + 0.001, i + 0.5, str(round(v * 100, 1)) + '%', fontsize=7)
+
+The model was evaluated on the test data, resulting in a test accuracy of 88,4%. 
+It is important to note that an optimal threshold of 20% was selected through experimentation.
+
+# Evaluate the model on the test set
+threshold = 0.2
+y_test_pred_prob = xgb_cv.predict_proba(X_test)[:,1]
+y_test_pred = np.where(y_test_pred_prob >= threshold, 1, 0)
+test_accuracy = accuracy_score(y_test, y_test_pred)
+print('Threshold:', threshold)
+print('Test Accuracy:', test_accuracy)
+
+## Model evaluation
 
 
 
