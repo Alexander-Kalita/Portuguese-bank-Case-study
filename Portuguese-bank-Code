@@ -165,8 +165,66 @@ plt.show()
 
 The line plot was designed to display the importance of call duration for term deposit subscription.
 
+# Line plot: Subscription rates by call duration
+duration_ranges = [(0, 60), (60, 120), (120, 180), (180, 240), (240, 300), (300, 360), (360, 420), (420, 480), (480, 540), (540, 600), (600, 3366), (3366, 5000)]
+call_durations = []
+sub_rates = []
+for duration_range in duration_ranges:
+    subset = bank_data[(bank_data['duration'] >= duration_range[0]) & (bank_data['duration'] <= duration_range[1])]
+    sub_rate = subset['y'].value_counts(normalize=True)['yes']
+    call_durations.append((duration_range[0]+duration_range[1])/2)
+    sub_rates.append(sub_rate)
+subset = bank_data[(bank_data['duration'] >= 550) & (bank_data['duration'] <= 1980)]
+sub_rate_range = subset['y'].value_counts(normalize=True)['yes']
+fig, ax = plt.subplots()
+ax.plot(call_durations, sub_rates)
+ax.set_xlabel('Call duration (seconds)')
+ax.set_ylabel('Subscription rate')
+ax.axvline(x=550, linestyle='--', color='red')
+ax.axvline(x=1980, linestyle='--', color='red')
+ax.axvspan(550, 1980, alpha=0.2, color='red')
+ax.text(620, 0.2, '{:.1%} subscribers'.format(sub_rate_range), fontsize=12)
+ax.set_xlim(0, 4200)
+ax.set_title('Figure 5: Subscription Rates by Call Duration', fontsize=14)
+plt.show()
 
+# Modeling and Analysis
 
+This section covers model selection, model training and interpretation, and model evaluation.
+
+## Model selection
+
+In this study, five classification models were evaluated (Logistic Regression, FeedForward Neural Networks, Decision Trees, Random Forests and XGBoost).
+All model code is provided in Appendix A.
+
+## Model Training and Interpretation
+
+The main features of the study were separated into a new dataframe from the target variable term deposit subscription.
+
+# Separate the features and the target variable
+X = bank_data.drop('y', axis=1)
+y = bank_data['y']
+
+The numeric variables were transformed using the Yeo-Johnson transformation method.
+
+# Transform numeric variables using the Yeo-Johnson transformation
+num_cols = bank_data.select_dtypes(include=['int64']).columns
+transformed_data = pd.DataFrame()
+for col in num_cols:
+    transformed_data[col] = yeojohnson(bank_data[col])[0]
+bank_data.drop(columns=num_cols, inplace=True)
+display(transformed_data.head())
+
+The categorical variables were transformed into 35 separate binary variables and recoded “y” – term deposit subscription variable into numeric values.
+
+# Transform categorical variables into binary variables
+cat_vars = ['job', 'education', 'marital', 'default', 'housing', 'loan', 'contact', 'month', 'poutcome']
+binary_data = pd.get_dummies(bank_data[cat_vars], columns=cat_vars, drop_first=True)
+bank_data.drop(columns=cat_vars, inplace=True)
+bank_data['y'] = bank_data['y'].map({'no': 0, 'yes': 1})
+X = pd.concat([bank_data, binary_data], axis=1)
+y = bank_data['y']
+display(X.head())
 
 
 
