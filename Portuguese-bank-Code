@@ -302,6 +302,56 @@ print('Test Accuracy:', test_accuracy)
 
 ## Model evaluation
 
+The confusion matrix was calculated.
+
+# Calculate confusion matrix
+cm = confusion_matrix(y_test, y_test_pred)
+fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(6, 6))
+sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', ax=axs)
+axs.set_xlabel('Predicted classes')
+axs.set_ylabel('Actual classes')
+axs.set_xticklabels(['Not subscribed', 'Subscribed'])
+axs.set_yticklabels(['Subscribed', 'Not subscribed'][::-1])
+axs.set_title('Figure 7: Confusion Matrix', fontsize=14)
+cbar = axs.collections[0].colorbar
+cbar.ax.set_ylabel('Count')
+plt.show()
+
+The confusion matrix metrics were calculated to reflect the model performance.
+
+# Calculate metrics for confusion matrix
+accuracy = accuracy_score(y_test, y_test_pred)
+tn, fp, fn, tp = cm.ravel()
+precision = tp / (tp + fp)
+sensitivity = tp / (tp + fn)
+specificity = tn / (tn + fp)
+print('Accuracy:', accuracy)
+print('Precision:', precision)
+print('Sensitivity:', sensitivity)
+print('Specificity:', specificity)
+
+The Area Under the Curve (AUC) of Receiver Operating Characteristic (ROC) metric distinguishes
+potential customers who are likely to subscribe to a term deposit and those who are not.
+
+# Plot ROC AUC curve
+fpr, tpr, thresholds = roc_curve(y_test, y_test_pred_prob)
+roc_auc = roc_auc_score(y_test, y_test_pred)
+idx = np.argwhere(fpr < 0.1)[-1]
+coord = (fpr[idx], tpr[idx])
+plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+plt.scatter(coord[0], coord[1], s=50, c='red', label='Highest TPR at FPR < 10%')
+plt.annotate('(%0.2f, %0.2f)' % coord, coord, textcoords="offset points", xytext=(-20, 10), ha='center')
+plt.plot([0, 1], [0, 1], 'k--', label='Baseline')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Figure 8: ROC AUC Curve', fontsize=14)
+plt.legend(loc="lower right")
+plt.show()
+
+
+
 
 
 
