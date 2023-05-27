@@ -7,7 +7,7 @@ output: .ipynb
 # Introduction
 
 The objective of this study is to investigate the relationship between various socio-demographic features, past marketing experiences,
-and the likelihood of successful customer deposit subscription in a Portuguese bank.
+and the likelihood of a successful customer deposit subscription in a Portuguese bank.
 
 # Data Description
 
