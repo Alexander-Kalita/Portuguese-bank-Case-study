@@ -5,7 +5,7 @@ The case study focuses on analyzing customer data and building classification mo
 
 ## Dataset
 
-The dataset used for this case study is the Portuguese Bank Marketing Dataset can be found [here](https://archive.ics.uci.edu/ml/datasets/bank+marketing)
+The dataset used for this case study is the Portuguese Bank Marketing Dataset can be found in [ML Repository](https://archive.ics.uci.edu/ml/datasets/bank+marketing)
 
 ## Files
 
