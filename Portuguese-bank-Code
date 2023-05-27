@@ -375,9 +375,263 @@ The current research provides some important conclusions as well as practical re
 
 # Appendix A
 
+In this section, only the modified code is presented for other classification models.
 
+## Logistic regression
 
+Several packages were used for logistic regression.
 
+# Load packages in Python
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy.stats import yeojohnson
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, roc_curve
+
+The logistic regression was built with the following parameters:
+
+# Build logistic regression model with 5-fold-cross-validation
+logreg_cv = LogisticRegressionCV(cv=5, penalty='l2', solver='liblinear')
+logreg_cv.fit(X_train, y_train)
+scores = logreg_cv.scores_[1].mean(axis=0)
+print('Best regularization parameter:', logreg_cv.C_[0])
+print("Cross-validation accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+Some changes were made to built a feature importance graph.
+
+# Plot relative feature importance
+importances = np.abs(logreg_cv.coef_[0])
+importances = importances / np.sum(importances)
+top_k = 5
+top_indices = np.argsort(importances)[-top_k:]
+top_importances = importances[top_indices]
+top_feature_names = X.columns[top_indices]
+plt.figure(figsize=(10, 6))
+plt.barh(range(top_k), top_importances, align='center', color='#00477e')
+plt.yticks(range(top_k), top_feature_names)
+plt.xlabel("(%)")
+plt.ylabel("Features")
+plt.title("Figure 6: Top 5 Features".format(top_k))
+plt.xticks(fontsize=7)
+plt.yticks(fontsize=7)
+for i, v in enumerate(top_importances):
+    plt.text(v + 0.001, i, str(round(v*100, 1))+'%', fontsize=7)
+plt.show()
+
+The threshold 20% was applied for predicting on test data.
+
+# Predict on test data
+threshold = 0.2
+y_test_pred_prob = logreg_cv.predict_proba(X_test)[:, 1]
+y_test_pred = np.where(y_test_pred_prob >= threshold, 1, 0)
+test_accuracy = accuracy_score(y_test, y_test_pred)
+print('Threshold:', threshold)
+print('Test Accuracy:', test_accuracy)
+
+## Feedforward Neural Networks
+
+The following packages were applied for Feedforward Neural networks (FNN):
+
+# Load packages in Python
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import random
+import tensorflow as tf
+from scipy.stats import yeojohnson
+from keras.utils import to_categorical
+from keras.models import Sequential
+from keras.layers import Dense
+from scikeras.wrappers import KerasClassifier
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, roc_curve
+
+One-hot enconding was specifically performed for FNN.
+
+# Perform one-hot encoding
+y_encoded = to_categorical(y)
+
+The random seed for reproducibility is important to exclude any variation when re-running FNN.
+
+# Set the random seed for reproducibility
+seed_value = 42
+np.random.seed(seed_value)
+random.seed(seed_value)
+tf.random.set_seed(seed_value)
+
+The FNN architecture was defined with its hyperparameters.
+
+# Define the neural network architecture
+input_dim = X_train.shape[1]
+output_dim = y_encoded.shape[1]
+def create_model(hidden_units=64, activation='relu', optimizer='adam'):
+    model = Sequential()
+    model.add(Dense(hidden_units, activation=activation, input_dim=input_dim))
+    model.add(Dense(128, activation=activation))
+    model.add(Dense(hidden_units, activation=activation))
+    model.add(Dense(output_dim, activation='softmax'))
+    model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+The model was applied on the entire training data with KerasClassifier.
+
+# Build and fit the model on entire training data
+model = KerasClassifier(model=create_model, verbose=0)
+
+FNN was built using 5-fold cross-validation and the best model was selected.
+
+# Build FNN with 5-fold cross-validation
+f = KFold(n_splits=5, shuffle=True, random_state=42)
+cross_val_scores = []
+best_model = None
+for train_index, val_index in f.split(X_train):
+    X_train_fold, X_val_fold = X_train.values[train_index], X_train.values[val_index]
+    y_train_fold, y_val_fold = y_train_encoded[train_index], y_train_encoded[val_index]
+    model = create_model()
+    model.fit(X_train_fold, y_train_fold, epochs=10, verbose=0)
+    y_val_pred = model.predict(X_val_fold)
+    y_val_pred_labels = np.argmax(y_val_pred, axis=1)
+    val_accuracy = accuracy_score(np.argmax(y_val_fold, axis=1), y_val_pred_labels)
+    cross_val_scores.append(val_accuracy)
+    if best_model is None or val_accuracy > max(cross_val_scores):
+        best_model = model
+mean_accuracy = np.mean(cross_val_scores)
+std_deviation = np.std(cross_val_scores)
+print("Cross-validation accuracy: %0.2f (+/- %0.2f)" % (mean_accuracy, std_deviation * 2))
+
+This best model was applied on the entire training data.
+
+# Train the best model using the entire training data
+best_model = create_model()
+best_model.fit(X_train, y_train_encoded, epochs=10, verbose=0)
+
+The relative feature importance plot was modified for FNN.
+
+# Plot relative feature importance
+X_train_tf = tf.convert_to_tensor(X_train.to_numpy())
+with tf.GradientTape() as tape:
+    tape.watch(X_train_tf)
+    predictions = best_model(X_train_tf)
+gradients = tape.gradient(predictions, X_train_tf)
+importances = tf.reduce_mean(tf.abs(gradients), axis=0)
+importances /= tf.reduce_sum(importances)
+importances_np = importances.numpy()
+features_np = X.columns.to_numpy()
+sorted_idx = np.argsort(importances_np)[-5:][::-1]
+top_features = features_np[sorted_idx]
+plt.figure(figsize=(10, 6))
+bars = plt.barh(np.arange(len(top_features)), importances_np[sorted_idx], align='center', color='#00477e')
+plt.yticks(np.arange(len(top_features)), top_features, fontsize=7)
+plt.title('Figure 6: Top 5 features', fontsize=14)
+plt.xlabel('(%)', fontsize=12)
+plt.ylabel('Features', fontsize=12)
+plt.xticks(fontsize=7)
+for i, bar in enumerate(bars):
+    plt.text(bar.get_width() + 0.001, bar.get_y() + bar.get_height() / 2, f'{importances_np[sorted_idx[i]]*100:.1f}%',
+             fontsize=7, va='center', ha='left')
+plt.tight_layout()
+plt.gca().invert_yaxis()
+plt.show()
+
+The 20% threshold was used for test data prediction.
+
+# Predict on test data
+threshold = 0.2
+y_test_pred_probs = best_model.predict(X_test)[:, 1]
+y_test_pred_labels = (y_test_pred_probs > threshold).astype(int)
+y_test_pred_encoded = to_categorical(y_test_pred_labels)
+test_accuracy = accuracy_score(np.argmax(y_test_encoded, axis=1), y_test_pred_labels)
+print('Threshold:', threshold)
+print("Test Accuracy:", test_accuracy)
+
+# Decision Trees
+
+The main packages for Decision Trees (DT) were loaded.
+
+# Load packages in Python
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import graphviz
+import matplotlib.pyplot as plt
+from scipy.stats import yeojohnson
+from sklearn.tree import DecisionTreeClassifier, export_graphviz
+from sklearn.model_selection import train_test_split, cross_val_score, KFold, GridSearchCV
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, roc_curve
+
+The DT was by using the following hyperparameters:
+
+# Define the hyperparameters grid
+param_grid = {
+    'criterion': ['gini', 'entropy'],
+    'max_depth': [None, 5, 10, 20],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+The DT was trained using DecisionTreeClassifier.
+
+# Train decision tree model
+dt_tuned = DecisionTreeClassifier(random_state=42)
+dt_tuned.fit(X_train, y_train)
+
+DT was built with 5-fold cross-validation.
+
+# Build decision tree model with 5-fold cross-validation
+grid_search = GridSearchCV(dt_tuned, param_grid, cv=5)
+grid_search.fit(X_train, y_train)
+best_params = grid_search.best_params_
+best_score = grid_search.best_score_
+print(f"Best Parameters: {best_params}")
+print(f"Best Score: {best_score}")
+
+The DT graph was built to visually present the important variables.
+
+# Decision tree graph
+dot_data = export_graphviz(dt_tuned, out_file=None, feature_names=X.columns, filled=True, rounded=True, max_depth=3)
+dot_data = dot_data.replace('node [', 'node [style="filled", shape="box", fontsize="8", fontname="Arial", width="0", height="0",')
+dot_data = dot_data.replace('edge [', 'edge [arrowsize="0.5",')
+dot_data = dot_data.replace('digraph Tree {', 'digraph Tree { labelloc="top"; label="Figure 6: Decision Trees graph";')
+graph = graphviz.Source(dot_data)
+display(graph)
+
+# Random Forest
+
+The main packages were loaded for Random Forest (RF).
+
+# Load packages in Python
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy.stats import yeojohnson
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score, roc_curve
+
+The 5-fold-cross-validation was used to create RF model.
+
+# Create a Random Forest classifier with 5-fold cross-validation
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(rf, X, y, cv=kf)
+print("Cross-validation accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+The 30% threshold was used for predicting on test data.
+
+# Predict on test data
+threshold = 0.3
+y_test_pred_prob = rf.predict_proba(X_test)[:, 1]
+y_test_pred = np.where(y_test_pred_prob >= threshold, 1, 0)
+test_accuracy = accuracy_score(y_test, y_test_pred)
+print('Threshold:', threshold)
+print('Test Accuracy:', test_accuracy)
 
 
 
