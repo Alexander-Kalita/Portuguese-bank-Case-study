@@ -350,6 +350,15 @@ plt.title('Figure 8: ROC AUC Curve', fontsize=14)
 plt.legend(loc="lower right")
 plt.show()
 
+The code saves term deposit predictions on the test data in a separate CSV file. 
+A customer ID was added to the dataset to facilitate the interpretation of the subscription predictions for the test data, as it was not present in the raw data.
+
+# Create csv file with term deposit predictions on test data
+customer_ids = range(1, len(X_test) + 1)
+submission_df = pd.DataFrame({'id': customer_ids, 'psubscribed': y_test_pred})
+submission_df.to_csv('Portuguese-bank-predictions.csv', index=False)
+submission_df.head()
+
 ## Model comparison
 
 In this subsection, the performance of different machine learning models was compared based on multiple metrics 
